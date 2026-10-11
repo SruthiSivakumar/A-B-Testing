@@ -1,5 +1,131 @@
 # A-B-Testing
 A/B Testing Essentials - Toolkits, sample codes, other learning resources
+
+# Part 1: Simple test kit 
+
+# A/B Test Planner
+
+An Excel workbook for planning an A/B test and checking it afterward. It is built for people who do not work with statistics. You type in a few numbers and read plain-English answers.
+
+It works in Excel, Google Sheets, and LibreOffice. It needs no macros or add-ins.
+
+## What it answers
+
+**Before the test**
+- How many customers do I need in Control and in Treatment?
+- How many days should I run the test?
+- Is my planned test big enough to spot the improvement I care about?
+
+**After the test**
+- Were customers split the way I planned? (sample ratio mismatch, or SRM, check)
+- Did the Treatment beat the Control, or is the difference just luck?
+
+## How to use it
+
+1. Download `ab_test_simple_toolkit.xlsx` and open it.
+2. Go to **Plan Test**. Fill in the yellow cells and read the green results.
+3. Run your test.
+4. Go to **Check Results**. Fill in the yellow cells with what happened and read the two verdicts.
+
+The **Start Here** tab explains the terms in plain language.
+
+## Inputs
+
+### Plan Test
+
+| Input | Meaning |
+|---|---|
+| Metric type | Conversion rate (share of customers who buy, click, or sign up) or Average value (such as revenue per customer) |
+| Current conversion rate or average value | Where the metric stands before the test |
+| Spread of the average value | Standard deviation. Only needed for Average value |
+| Smallest improvement worth detecting | Relative change, for example 10% |
+| Share of customers in Control and in Treatment | Any two numbers, for example 50 and 50, or 90 and 10 |
+| Customers entering the test per day | Both groups together |
+| Days you plan to run the test | Use whole weeks |
+
+Confidence (95%), power (80%), and the split-check alert level (0.01) are preset in a settings block. Most people should leave them alone.
+
+### Check Results
+
+| Input | Meaning |
+|---|---|
+| Customers in Control and in Treatment | Actual group sizes at the end of the test |
+| Conversion rate or average value after the test | For Control and for Treatment |
+
+The metric type, planned split, and spread are carried over from Plan Test.
+
+## Outputs
+
+**Plan Test**
+- Customers needed in Control, in Treatment, and in total
+- Days needed at your daily traffic, and a recommended run time rounded up to whole weeks (minimum 7 days)
+- Customers you will get in your planned days
+- Chance of spotting the improvement (power) and the smallest improvement you can reliably spot
+- A verdict: the plan is big enough, or it is too short
+
+**Check Results**
+- Split check: planned share, actual share, p-value, and an OK or PROBLEM message
+- Change versus Control, the likely range of the real change, and the chance the difference is luck
+- A verdict: Treatment is better, Treatment is worse, no clear winner, or fix the split problem first
+
+If the split check fails, the result verdict tells you not to trust the test.
+
+## Worked examples
+
+These use the default values in the workbook.
+
+| Scenario | Inputs | Result |
+|---|---|---|
+| Plan a conversion test | 5% current rate, 10% improvement, 50/50 split, 5,000 customers per day | 31,231 customers per group, 13 days needed, 14 days recommended |
+| Check a plan | Same test run for 14 days | 84% chance of spotting a 10% improvement. The plan is big enough |
+| Split check passes | Planned 50/50, observed 10,000 and 9,900 | p = 0.48, split is OK |
+| Split check fails | Planned 50/50, observed 10,000 and 8,000 | p is near zero, do not trust the result |
+| Clear win | Control 5.0%, Treatment 5.7%, about 10,000 each | Treatment is better. Likely real change is +1.5% to +26.5% |
+| No clear winner | Control 5.0%, Treatment 5.1%, 10,000 each | No clear winner. This test could only spot changes of 17.3% or more |
+
+## How it calculates
+
+The workbook uses the standard normal approximation for comparing two groups, with a two-sided test.
+
+For conversion rates, the Control group size is:
+
+```
+n_control = (z_confidence + z_power)^2 * [p1(1-p1) + p2(1-p2)/k] / (p2 - p1)^2
+```
+
+For average values:
+
+```
+n_control = (z_confidence + z_power)^2 * sigma^2 * (1 + 1/k) / delta^2
+```
+
+Here `p1` is the current rate, `p2` is the rate after the improvement, `sigma` is the standard deviation, `delta` is the difference to detect, and `k` is the Treatment size divided by the Control size. This handles uneven splits.
+
+The split check is a chi-square goodness-of-fit test with one degree of freedom. The result check compares the two groups with a z-test.
+
+The workbook uses `NORMSINV`, `NORMSDIST`, and `CHIDIST` so it behaves the same in older Excel, current Excel, and Google Sheets.
+
+## Limits
+
+- Each customer is assumed to be placed in one group at random, on their own. Tests on whole stores, cities, or regions need a different method.
+- For very low conversion rates (under 1%) and small tests, treat the sample sizes as a rough guide.
+- Average values need a standard deviation. Without a good estimate, the sample size is a guess.
+- The sample sizes assume one analysis at the end. Stopping early after repeated looks makes false wins more likely.
+- The split check supports two groups. For tests with more than one Treatment, run the check on Control against each Treatment separately.
+
+## Compatibility
+
+Formulas were recalculated in LibreOffice with zero errors, and sample sizes and p-values were checked against an independent calculation in Python. The functions used are available in Excel 2007 and later and in Google Sheets. The workbook has not been opened in Excel itself.
+
+## Contributing
+
+Issues and pull requests are welcome. If you report a calculation problem, include the inputs you used and the output you expected.
+
+## License
+
+MIT.
+
+# Part 2 - More elaborate tool kit.
 # A/B Test Power & SRM Toolkit
 
 An Excel workbook for planning A/B tests and checking that a test was run correctly. It calculates sample size, achieved power, and minimum detectable effect (MDE), and it runs a sample ratio mismatch (SRM) check. Every calculation is a live formula, so you can reuse it on any experiment by changing the yellow input cells.
